@@ -1,0 +1,42 @@
+<form method="get" class="search-bar mb-3" style="max-width:420px">
+    <i class="bi bi-search"></i>
+    <input type="search" name="q" value="<?= e($q) ?>" placeholder="Search by name or email">
+    <button class="btn btn-brand btn-sm px-3">Search</button>
+</form>
+
+<div class="table-card">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Listings</th><th>Joined</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+            <?php foreach ($users as $u): $self = (int) $u['id'] === (int) $admin['id']; ?>
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="<?= avatar_url($u['profile_picture']) ?>" class="avatar-sm" alt="">
+                            <div><strong class="d-block"><?= e($u['full_name']) ?><?= $self ? ' <small class="text-muted">(you)</small>' : '' ?></strong><small class="text-muted"><?= e($u['email']) ?></small></div>
+                        </div>
+                    </td>
+                    <td><span class="role-pill <?= e($u['role']) ?>"><?= ucfirst(e($u['role'])) ?></span></td>
+                    <td><span class="status-pill <?= $u['is_active'] ? 'available' : 'sold' ?>"><?= $u['is_active'] ? 'Active' : 'Suspended' ?></span></td>
+                    <td><?= (int) $u['listings'] ?></td>
+                    <td class="small text-muted"><?= date('d M Y', strtotime($u['created_at'])) ?></td>
+                    <td class="text-end">
+                        <?php if (!$self): ?>
+                            <div class="d-inline-flex gap-1">
+                                <form method="post"><?= csrf_field() ?><input type="hidden" name="user_id" value="<?= (int) $u['id'] ?>"><input type="hidden" name="action" value="toggle_active">
+                                    <button class="btn btn-sm btn-outline-brand" title="<?= $u['is_active'] ? 'Suspend' : 'Activate' ?>"><i class="bi <?= $u['is_active'] ? 'bi-pause-circle' : 'bi-play-circle' ?>"></i></button></form>
+                                <form method="post" data-confirm="Change the role of <?= e($u['full_name']) ?>?"><?= csrf_field() ?><input type="hidden" name="user_id" value="<?= (int) $u['id'] ?>"><input type="hidden" name="action" value="toggle_role">
+                                    <button class="btn btn-sm btn-outline-brand" title="<?= $u['role'] === 'admin' ? 'Make user' : 'Make admin' ?>"><i class="bi <?= $u['role'] === 'admin' ? 'bi-person-dash' : 'bi-shield-plus' ?>"></i></button></form>
+                                <form method="post" data-confirm="Delete <?= e($u['full_name']) ?> and ALL their listings and messages?"><?= csrf_field() ?><input type="hidden" name="user_id" value="<?= (int) $u['id'] ?>"><input type="hidden" name="action" value="delete">
+                                    <button class="btn btn-sm btn-soft-danger" title="Delete"><i class="bi bi-trash"></i></button></form>
+                            </div>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            <?php if (!$users): ?><tr><td colspan="6" class="text-center text-muted py-4">No users found.</td></tr><?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,193 @@
+<section class="page-hero pb-3">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="<?= url('marketplace.php') ?>">Marketplace</a></li>
+                <li class="breadcrumb-item"><a href="<?= url('marketplace.php?category=' . (int) $product['category_id']) ?>"><?= e($product['category_name']) ?></a></li>
+                <li class="breadcrumb-item active text-truncate" style="max-width:240px"><?= e($product['title']) ?></li>
+            </ol>
+        </nav>
+    </div>
+</section>
+
+<div class="container">
+    <div class="row g-4 g-lg-5">
+        <!-- ============ IMAGE ============ -->
+        <div class="col-lg-7">
+            <!-- Galerie : grande photo + miniatures (cliquer une miniature change la grande photo) -->
+            <div class="gallery-main">
+                <img src="<?= product_image_url($photos[0]['filename']) ?>" alt="<?= e($product['title']) ?>" id="mainPhoto">
+                <?php if ($isSold): ?><span class="sold-ribbon">Sold</span><?php endif; ?>
+            </div>
+            <?php if (count($photos) > 1): ?>
+                <div class="gallery-thumbs">
+                    <?php foreach ($photos as $i => $photo): ?>
+                        <button type="button" class="thumb<?= $i === 0 ? ' active' : '' ?>" data-photo="<?= product_image_url($photo['filename']) ?>" aria-label="Photo <?= $i + 1 ?>">
+                            <img src="<?= product_image_url($photo['filename']) ?>" alt="">
+                        </button>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+            <p class="small text-muted mt-2"><i class="bi bi-zoom-in me-1"></i>Click the photo to zoom · <?= count($photos) ?> photo<?= count($photos) > 1 ? 's' : '' ?></p>
+
+            <div class="panel mt-3">
+                <h2 class="panel-title">Description</h2>
+                <p class="desc mb-0"><?= e($product['description']) ?></p>
+            </div>
+        </div>
+
+        <!-- ============ INFO ============ -->
+        <div class="col-lg-5">
+            <div class="panel">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <?php if ($isSold): ?>
+                        <span class="status-pill sold">Sold</span>
+                    <?php elseif ($product['reserved_until']): ?>
+                        <span class="status-pill reserved">Reserved</span>
+                    <?php else: ?>
+                        <span class="status-pill available">Available</span>
+                    <?php endif; ?>
+                    <span class="small text-muted"><i class="bi bi-eye me-1"></i><?= (int) $product['views'] ?> views · <?= time_ago($product['created_at']) ?></span>
+                </div>
+
+                <h1 class="detail-title mb-2"><?= e($product['title']) ?></h1>
+                <div class="detail-price mb-4">
+                    <?= format_price($product['price']) ?>
+                    <?php if ($oldPrice): ?>
+                        <span class="old-price"><?= format_price($oldPrice) ?></span>
+                        <span class="price-drop"><i class="bi bi-arrow-down"></i> Price dropped</span>
+                    <?php endif; ?>
+                </div>
+
+                <div class="spec-grid mb-4">
+                    <div class="spec"><small>Condition</small><strong><?= e($product['item_condition']) ?></strong></div>
+                    <div class="spec"><small>Category</small><strong><i class="bi <?= e($product['category_icon']) ?> me-1"></i><?= e($product['category_name']) ?></strong></div>
+                    <div class="spec"><small>Location</small><strong><i class="bi bi-geo-alt me-1"></i><?= e($product['location']) ?>, Tunisia</strong></div>
+                    <div class="spec"><small>Listed on</small><strong><?= date('d M Y', strtotime($product['created_at'])) ?></strong></div>
+                </div>
+
+                <!-- ============ RÉSERVATION 24 H ============ -->
+                <?php if (!$isSold): ?>
+                    <div class="reserve-box mb-3">
+                        <?php if ($product['reserved_until'] && $reservedByMe): ?>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-clock-history fs-4 text-brand"></i>
+                                <div><strong class="d-block">You reserved this item</strong>
+                                    <small class="text-muted">Time left: <?= time_left($product['reserved_until']) ?> (until <?= date('d M, H:i', strtotime($product['reserved_until'])) ?>)</small></div>
+                            </div>
+                            <form action="<?= url('reserve.php') ?>" method="post" class="d-grid" data-confirm="Cancel your reservation?">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="product_id" value="<?= $id ?>">
+                                <input type="hidden" name="action" value="cancel">
+                                <button class="btn btn-soft-danger btn-sm"><i class="bi bi-x-circle me-1"></i> Cancel my reservation</button>
+                            </form>
+                        <?php elseif ($product['reserved_until']): ?>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-lock fs-4 text-brand"></i>
+                                <div>
+                                    <strong class="d-block">Reserved<?= $buyer ? ' by ' . e($buyer['full_name']) : '' ?></strong>
+                                    <small class="text-muted">Free again in <?= time_left($product['reserved_until']) ?> (<?= date('d M, H:i', strtotime($product['reserved_until'])) ?>)</small>
+                                </div>
+                            </div>
+                            <?php if ($isOwner && $buyer): ?>
+                                <a href="<?= url('messages.php?product=' . $id . '&with=' . (int) $buyer['id']) ?>" class="btn btn-outline-brand btn-sm w-100 mt-2"><i class="bi bi-chat-dots me-1"></i> Message the buyer</a>
+                            <?php endif; ?>
+                        <?php elseif (!$isOwner): ?>
+                            <form action="<?= url('reserve.php') ?>" method="post" class="d-grid">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="product_id" value="<?= $id ?>">
+                                <input type="hidden" name="action" value="reserve">
+                                <button class="btn btn-brand"><i class="bi bi-bookmark-check me-1"></i> Reserve for 24 hours</button>
+                            </form>
+                            <small class="text-muted d-block mt-2">The item is blocked for other buyers during 24 h, then becomes free again.</small>
+                        <?php else: ?>
+                            <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Buyers can reserve your item for 24 hours.</small>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (can_manage_product($product)): ?>
+                    <!-- Actions du propriétaire / de l'admin -->
+                    <div class="d-grid gap-2">
+                        <?php if ($isOwner): ?>
+                            <a href="<?= url('edit_product.php?id=' . $id) ?>" class="btn btn-brand"><i class="bi bi-pencil me-1"></i> Edit listing</a>
+                            <form action="<?= url('toggle_status.php') ?>" method="post" class="d-grid">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="product_id" value="<?= $id ?>">
+                                <input type="hidden" name="back" value="details">
+                                <button class="btn btn-outline-brand"><i class="bi <?= $isSold ? 'bi-arrow-counterclockwise' : 'bi-check2-circle' ?> me-1"></i> Mark as <?= $isSold ? 'available' : 'sold' ?></button>
+                            </form>
+                        <?php endif; ?>
+                        <form action="<?= url('delete_product.php') ?>" method="post" class="d-grid" data-confirm="Delete this listing permanently?">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="product_id" value="<?= $id ?>">
+                            <button class="btn btn-soft-danger"><i class="bi bi-trash me-1"></i> Delete<?= $isOwner ? '' : ' (admin)' ?></button>
+                        </form>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (!$isOwner): ?>
+                    <form action="<?= url('toggle_favorite.php') ?>" method="post" class="fav-form position-static d-grid mt-2">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="product_id" value="<?= $id ?>">
+                        <button class="btn btn-outline-brand d-flex align-items-center justify-content-center gap-2">
+                            <span class="fav-btn<?= $isFav ? ' active' : '' ?> shadow-none bg-transparent" style="width:auto;height:auto"><i class="bi <?= $isFav ? 'bi-heart-fill' : 'bi-heart' ?>"></i></span>
+                            <span data-fav-label><?= $isFav ? 'Saved' : 'Save' ?></span>
+                        </button>
+                    </form>
+                <?php endif; ?>
+            </div>
+
+            <!-- Seller -->
+            <div class="panel mt-3">
+                <h2 class="panel-title mb-3">Seller</h2>
+                <div class="seller-card mb-3">
+                    <img src="<?= avatar_url($product['seller_picture']) ?>" class="avatar-md" alt="">
+                    <div>
+                        <strong class="d-block"><?= e($product['seller_name']) ?></strong>
+                        <small class="text-muted">
+                            <?= $product['seller_city'] ? '<i class="bi bi-geo-alt"></i> ' . e($product['seller_city']) . ' · ' : '' ?>
+                            Member since <?= date('M Y', strtotime($product['seller_since'])) ?>
+                        </small>
+                        <small class="d-block text-muted"><?= (int) $sellerStats['total'] ?> listings · <?= (int) $sellerStats['sold'] ?> sold</small>
+                    </div>
+                </div>
+
+                <?php if (!$isOwner): ?>
+                    <?php if ($product['seller_phone']): ?>
+                        <a href="tel:<?= e(preg_replace('/[^\d+]/', '', $product['seller_phone'])) ?>" class="btn btn-outline-brand w-100 mb-3"><i class="bi bi-telephone me-1"></i> <?= e($product['seller_phone']) ?></a>
+                    <?php endif; ?>
+
+                    <?php if (!$isSold): ?>
+                        <form action="<?= url('send_message.php') ?>" method="post" class="needs-validation" novalidate id="contact">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="product_id" value="<?= $id ?>">
+                            <input type="hidden" name="receiver_id" value="<?= (int) $product['user_id'] ?>">
+                            <label class="form-label" for="body">Contact the seller</label>
+                            <textarea class="form-control mb-2" id="body" name="body" rows="3" maxlength="1000" minlength="2" required>Hello, is "<?= e($product['title']) ?>" still available?</textarea>
+                            <div class="invalid-feedback mb-2">Write a message.</div>
+                            <button class="btn btn-brand w-100"><i class="bi bi-send me-1"></i> Send message</button>
+                        </form>
+                    <?php else: ?>
+                        <div class="alert alert-secondary mb-0 small">This item has been sold, messaging is closed.</div>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <a href="<?= url('messages.php') ?>" class="btn btn-outline-brand w-100"><i class="bi bi-chat-dots me-1"></i> View my messages</a>
+                <?php endif; ?>
+            </div>
+
+            <div class="small text-muted mt-3 px-1"><i class="bi bi-shield-check me-1"></i>Safety tip: meet in a public place and check the item before paying.</div>
+        </div>
+    </div>
+
+    <?php if ($similar): ?>
+        <section class="section pb-0">
+            <div class="section-head"><div><span class="kicker">You may also like</span><h2>Similar items</h2></div></div>
+            <div class="row g-3 g-lg-4">
+                <?php foreach ($similar as $p): ?>
+                    <div class="col-6 col-lg-3"><?php partial('product_card', ['p' => $p, 'favIds' => $favIds]); ?></div>
+                <?php endforeach; ?>
+            </div>
+        </section>
+    <?php endif; ?>
+</div>

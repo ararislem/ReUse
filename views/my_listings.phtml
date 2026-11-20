@@ -1,0 +1,71 @@
+<section class="page-hero">
+    <div class="container d-flex justify-content-between align-items-end flex-wrap gap-3">
+        <div>
+            <span class="kicker">Dashboard</span>
+            <h1>My listings</h1>
+            <p>Manage everything you are selling on ReUse.</p>
+        </div>
+        <a href="<?= url('add_product.php') ?>" class="btn btn-brand btn-lg"><i class="bi bi-plus-lg me-1"></i> New listing</a>
+    </div>
+</section>
+
+<div class="container">
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><div class="stat-mini"><small>Total listings</small><strong><?= (int) $s['total'] ?></strong></div></div>
+        <div class="col-6 col-md-3"><div class="stat-mini"><small>Available</small><strong><?= (int) $s['available'] ?></strong></div></div>
+        <div class="col-6 col-md-3"><div class="stat-mini"><small>Sold</small><strong><?= (int) $s['sold'] ?></strong></div></div>
+        <div class="col-6 col-md-3"><div class="stat-mini"><small>Total views</small><strong><?= (int) $s['views'] ?></strong></div></div>
+    </div>
+
+    <ul class="nav nav-pills mb-3 gap-2">
+        <?php foreach (['' => 'All', 'available' => 'Available', 'sold' => 'Sold'] as $k => $label): ?>
+            <li class="nav-item"><a class="btn btn-sm <?= $filter === $k ? 'btn-brand' : 'btn-ghost' ?>" href="<?= url('my_listings.php' . ($k ? '?status=' . $k : '')) ?>"><?= $label ?></a></li>
+        <?php endforeach; ?>
+    </ul>
+
+    <?php if ($products): ?>
+        <?php foreach ($products as $p): ?>
+            <div class="listing-row">
+                <a href="<?= url('product_details.php?id=' . (int) $p['id']) ?>"><img src="<?= product_image_url($p['image']) ?>" alt=""></a>
+                <div class="info">
+                    <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                        <span class="status-pill <?= e($p['status']) ?>"><?= $p['status'] === 'sold' ? 'Sold' : 'Available' ?></span>
+                        <?php if ($p['status'] !== 'sold' && $p['reserved_until']): ?>
+                            <span class="status-pill reserved">Reserved · <?= time_left($p['reserved_until']) ?> left</span>
+                        <?php endif; ?>
+                        <?= condition_badge($p['item_condition']) ?>
+                    </div>
+                    <h3 class="text-truncate"><a href="<?= url('product_details.php?id=' . (int) $p['id']) ?>" class="text-reset"><?= e($p['title']) ?></a></h3>
+                    <div class="small text-muted">
+                        <strong class="text-brand"><?= format_price($p['price']) ?></strong>
+                        · <?= e($p['category_name']) ?> · <i class="bi bi-geo-alt"></i> <?= e($p['location']) ?>
+                        · <i class="bi bi-eye"></i> <?= (int) $p['views'] ?> · <i class="bi bi-heart"></i> <?= (int) $p['fav_count'] ?>
+                        · <?= time_ago($p['created_at']) ?>
+                    </div>
+                </div>
+                <div class="actions">
+                    <form action="<?= url('toggle_status.php') ?>" method="post">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
+                        <button class="btn btn-sm btn-outline-brand" title="Toggle status">
+                            <i class="bi <?= $p['status'] === 'sold' ? 'bi-arrow-counterclockwise' : 'bi-check2-circle' ?> me-1"></i><?= $p['status'] === 'sold' ? 'Relist' : 'Mark sold' ?>
+                        </button>
+                    </form>
+                    <a href="<?= url('edit_product.php?id=' . (int) $p['id']) ?>" class="btn btn-sm btn-brand btn-icon" title="Edit"><i class="bi bi-pencil"></i></a>
+                    <form action="<?= url('delete_product.php') ?>" method="post" data-confirm="Delete &quot;<?= e($p['title']) ?>&quot; permanently?">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
+                        <button class="btn btn-sm btn-soft-danger btn-icon" title="Delete"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <div class="empty-state">
+            <div class="ic"><i class="bi bi-box-seam"></i></div>
+            <h3><?= $filter ? 'Nothing here' : 'You have not listed anything yet' ?></h3>
+            <p>Declutter your home and earn some dinars. Your first listing takes less than two minutes.</p>
+            <a href="<?= url('add_product.php') ?>" class="btn btn-brand">Sell my first item</a>
+        </div>
+    <?php endif; ?>
+</div>

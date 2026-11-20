@@ -1,0 +1,11 @@
+<section class="page-hero">
+    <div class="container">
+        <span class="kicker">New listing</span>
+        <h1>Sell an item</h1>
+        <p>Fill in the details below. Clear photos and honest descriptions sell faster.</p>
+    </div>
+</section>
+
+<div class="container">
+    <?php partial('product_form', compact('values', 'errors', 'isEdit', 'currentImage', 'extraPhotos')); ?>
+</div>

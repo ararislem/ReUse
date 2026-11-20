@@ -1,0 +1,11 @@
+<section class="page-hero">
+    <div class="container">
+        <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="<?= url('my_listings.php') ?>">My Listings</a></li><li class="breadcrumb-item active">Edit</li></ol></nav>
+        <h1>Edit listing</h1>
+        <p><?= e($product['title']) ?></p>
+    </div>
+</section>
+
+<div class="container">
+    <?php partial('product_form', compact('values', 'errors', 'isEdit', 'currentImage', 'extraPhotos')); ?>
+</div>

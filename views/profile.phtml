@@ -1,0 +1,113 @@
+<div class="container pt-4">
+    <div class="panel p-0 overflow-hidden mb-4">
+        <div class="profile-cover"></div>
+        <div class="profile-head px-4 pb-4 d-flex flex-wrap align-items-end gap-3">
+            <img src="<?= avatar_url($user['profile_picture']) ?>" class="avatar-lg" alt="Profile picture">
+            <div class="flex-grow-1">
+                <h1 class="mb-0" style="font-size:2rem"><?= e($user['full_name']) ?></h1>
+                <div class="text-muted small">
+                    <i class="bi bi-envelope me-1"></i><?= e($user['email']) ?>
+                    <?php if ($user['city']): ?> · <i class="bi bi-geo-alt me-1"></i><?= e($user['city']) ?><?php endif; ?>
+                    · Member since <?= date('F Y', strtotime($user['created_at'])) ?>
+                    <?php if ($user['role'] === 'admin'): ?> · <span class="role-pill admin">Admin</span><?php endif; ?>
+                </div>
+            </div>
+            <div class="d-flex gap-4 text-center">
+                <div><strong class="display-font fs-3 d-block text-brand"><?= (int) $stats['listings'] ?></strong><small class="text-muted">Listings</small></div>
+                <div><strong class="display-font fs-3 d-block text-brand"><?= (int) $stats['sold'] ?></strong><small class="text-muted">Sold</small></div>
+                <div><strong class="display-font fs-3 d-block text-brand"><?= (int) $stats['favorites'] ?></strong><small class="text-muted">Saved</small></div>
+                <div><strong class="display-font fs-3 d-block text-brand"><?= (int) $stats['reservations'] ?></strong><small class="text-muted">Reserved</small></div>
+            </div>
+        </div>
+        <?php if ($user['bio']): ?><p class="px-4 pb-4 mb-0 desc"><?= e($user['bio']) ?></p><?php endif; ?>
+    </div>
+
+    <div class="row g-4">
+        <!-- Personal information -->
+        <div class="col-lg-7">
+            <form method="post" enctype="multipart/form-data" class="panel needs-validation" novalidate>
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="profile">
+                <h2 class="panel-title">Personal information</h2>
+
+                <div class="mb-3">
+                    <label class="form-label">Profile picture</label>
+                    <label class="avatar-upload<?= invalid($errors, 'profile_picture') ?>" data-upload>
+                        <span class="avatar-preview"><img src="<?= avatar_url($user['profile_picture']) ?>" alt=""></span>
+                        <span><strong class="d-block">Change photo</strong><small class="text-muted" data-file-name>JPG, PNG or WEBP, max 2 MB</small></span>
+                        <input type="file" name="profile_picture" accept="image/jpeg,image/png,image/webp" class="d-none">
+                    </label>
+                    <div class="invalid-feedback upload-error<?= isset($errors['profile_picture']) ? ' d-block' : '' ?>"><?= e($errors['profile_picture'] ?? '') ?></div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="full_name">Full name</label>
+                        <input type="text" class="form-control<?= invalid($errors, 'full_name') ?>" id="full_name" name="full_name" value="<?= $isProfilePost ? $val('full_name') : e($user['full_name']) ?>" minlength="3" maxlength="100" required>
+                        <?= feedback($errors, 'full_name') ?: '<div class="invalid-feedback">Enter your full name.</div>' ?>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="email">Email</label>
+                        <input type="email" class="form-control<?= invalid($errors, 'email') ?>" id="email" name="email" value="<?= $isProfilePost ? $val('email') : e($user['email']) ?>" required>
+                        <?= feedback($errors, 'email') ?: '<div class="invalid-feedback">Enter a valid email.</div>' ?>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="phone">Phone <span class="text-muted fw-normal">(optional, shown to buyers)</span></label>
+                        <input type="tel" class="form-control<?= invalid($errors, 'phone') ?>" id="phone" name="phone" value="<?= $isProfilePost ? $val('phone') : e($user['phone']) ?>" placeholder="+216 22 123 456">
+                        <?= feedback($errors, 'phone') ?>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="city">Governorate</label>
+                        <?php $cityVal = $isProfilePost ? ($_POST['city'] ?? '') : ($user['city'] ?? ''); ?>
+                        <select class="form-select<?= invalid($errors, 'city') ?>" id="city" name="city">
+                            <option value="">Not specified</option>
+                            <?php foreach (GOVERNORATES as $g): ?><option value="<?= e($g) ?>" <?= $cityVal === $g ? 'selected' : '' ?>><?= e($g) ?></option><?php endforeach; ?>
+                        </select>
+                        <?= feedback($errors, 'city') ?>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="bio">About me</label>
+                        <textarea class="form-control<?= invalid($errors, 'bio') ?>" id="bio" name="bio" rows="3" maxlength="500" data-counter="bioCount" placeholder="A few words for buyers..."><?= $isProfilePost ? $val('bio') : e($user['bio']) ?></textarea>
+                        <div class="d-flex"><?= feedback($errors, 'bio') ?><small class="text-muted ms-auto" id="bioCount"></small></div>
+                    </div>
+                </div>
+                <div class="text-end mt-4"><button class="btn btn-brand"><i class="bi bi-check2 me-1"></i> Save changes</button></div>
+            </form>
+        </div>
+
+        <!-- Password -->
+        <div class="col-lg-5">
+            <form method="post" class="panel needs-validation" novalidate>
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="password">
+                <h2 class="panel-title">Change password</h2>
+                <div class="mb-3">
+                    <label class="form-label" for="current_password">Current password</label>
+                    <input type="password" class="form-control<?= invalid($pwErrors, 'current_password') ?>" id="current_password" name="current_password" required>
+                    <?= feedback($pwErrors, 'current_password') ?: '<div class="invalid-feedback">Required.</div>' ?>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="password">New password</label>
+                    <input type="password" class="form-control<?= invalid($pwErrors, 'password') ?>" id="password" name="password" minlength="8" pattern="(?=.*[A-Za-z])(?=.*\d).{8,}" required>
+                    <?= feedback($pwErrors, 'password') ?: '<div class="invalid-feedback">8+ characters with letters and numbers.</div>' ?>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label" for="confirm_password">Confirm new password</label>
+                    <input type="password" class="form-control<?= invalid($pwErrors, 'confirm_password') ?>" id="confirm_password" name="confirm_password" required>
+                    <?= feedback($pwErrors, 'confirm_password') ?: '<div class="invalid-feedback">Passwords do not match.</div>' ?>
+                </div>
+                <button class="btn btn-outline-brand w-100"><i class="bi bi-shield-lock me-1"></i> Update password</button>
+            </form>
+
+            <div class="panel mt-4">
+                <h2 class="panel-title">Quick links</h2>
+                <div class="d-grid gap-2">
+                    <a href="<?= url('my_listings.php') ?>" class="btn btn-ghost text-start"><i class="bi bi-box-seam me-2"></i>My listings</a>
+                    <a href="<?= url('favorites.php') ?>" class="btn btn-ghost text-start"><i class="bi bi-heart me-2"></i>Favorites</a>
+                    <a href="<?= url('my_reservations.php') ?>" class="btn btn-ghost text-start"><i class="bi bi-bookmark-check me-2"></i>My reservations</a>
+                    <a href="<?= url('messages.php') ?>" class="btn btn-ghost text-start"><i class="bi bi-chat-dots me-2"></i>Messages</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

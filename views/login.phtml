@@ -1,0 +1,51 @@
+<div class="auth-wrap">
+    <aside class="auth-side">
+        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=75" alt="" onerror="this.style.display='none'">
+        <h2>Good things deserve a second chance.</h2>
+        <p>Log in to browse the marketplace, message sellers and manage your listings.</p>
+    </aside>
+
+    <section class="auth-form">
+        <div class="auth-card">
+            <h1>Welcome back</h1>
+            <p class="text-muted mb-4">New to ReUse? <a href="<?= url('register.php') ?>" class="fw-semibold">Create an account</a></p>
+
+            <?php if (isset($errors['general'])): ?>
+                <div class="alert alert-danger d-flex gap-2 align-items-center"><i class="bi bi-exclamation-circle"></i><?= e($errors['general']) ?></div>
+            <?php endif; ?>
+
+            <form method="post" class="needs-validation" novalidate>
+                <?= csrf_field() ?>
+                <div class="mb-3">
+                    <label class="form-label" for="email">Email</label>
+                    <div class="input-icon">
+                        <i class="bi bi-envelope"></i>
+                        <input type="email" class="form-control<?= invalid($errors, 'email') ?>" id="email" name="email"
+                               value="<?= old('email') ?>" required autofocus placeholder="you@example.com">
+                        <?= feedback($errors, 'email') ?: '<div class="invalid-feedback">Enter a valid email.</div>' ?>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="input-icon">
+                        <i class="bi bi-lock"></i>
+                        <input type="password" class="form-control<?= invalid($errors, 'password') ?>" id="password" name="password" required placeholder="Your password">
+                        <button type="button" class="toggle-pass" aria-label="Show password"><i class="bi bi-eye"></i></button>
+                        <?= feedback($errors, 'password') ?: '<div class="invalid-feedback">Enter your password.</div>' ?>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check m-0">
+                        <input class="form-check-input" type="checkbox" name="remember" id="remember" value="1"<?= !empty($_POST['remember']) ? ' checked' : '' ?>>
+                        <label class="form-check-label" for="remember">Remember me for 30 days</label>
+                    </div>
+                    <a href="<?= url('forgot_password.php') ?>" class="small fw-semibold">Forgot password?</a>
+                </div>
+                <button class="btn btn-brand btn-lg w-100">Log in</button>
+            </form>
+
+            <div class="divider-text">Demo admin</div>
+            <p class="small text-muted text-center mb-0">admin@reuse.tn · Admin@123</p>
+        </div>
+    </section>
+</div>

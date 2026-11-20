@@ -1,0 +1,183 @@
+<!-- ============ HERO ============ -->
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="eyebrow"><span class="pulse"></span> Tunisia's second-hand marketplace</span>
+                <h1>Give things a <em>second life.</em></h1>
+                <p class="lead">Buy, sell and exchange pre-loved clothes, electronics, books and furniture with people near you. Good for your wallet, better for the planet.</p>
+
+                <form class="hero-search" action="<?= url('marketplace.php') ?>" method="get" role="search">
+                    <i class="bi bi-search"></i>
+                    <input type="search" name="q" placeholder="Search for a bike, a sofa, an iPhone..." aria-label="Search products" maxlength="80">
+                    <button class="btn btn-brand"><i class="bi bi-arrow-right d-sm-none"></i><span>Search</span></button>
+                </form>
+
+                <div class="hero-stats">
+                    <div><strong><?= number_format((int) $stats['available']) ?></strong><span>items available</span></div>
+                    <div><strong><?= number_format((int) $stats['members']) ?></strong><span>community members</span></div>
+                    <div><strong>24</strong><span>governorates</span></div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="hero-visual">
+                    <div class="tile t1"><img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=900&q=75" alt="Second-hand furniture" onerror="this.src='<?= $fallback ?>'"></div>
+                    <div class="tile t2"><img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=75" alt="Headphones" onerror="this.src='<?= $fallback ?>'"></div>
+                    <div class="tile t3"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=75" alt="Sneakers" onerror="this.src='<?= $fallback ?>'"></div>
+                    <div class="float-card f1">
+                        <div class="ic"><i class="bi bi-patch-check"></i></div>
+                        <div><small>Just sold in Sousse</small><strong>Vintage armchair · 180 DT</strong></div>
+                    </div>
+                    <div class="float-card f2">
+                        <div class="ic"><i class="bi bi-tree"></i></div>
+                        <div><small>Items re-used</small><strong><?= number_format((int) $stats['sold']) ?> and counting</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ CATEGORIES ============ -->
+<section class="section pt-4">
+    <div class="container">
+        <div class="section-head reveal">
+            <div>
+                <span class="kicker">Explore</span>
+                <h2>Shop by category</h2>
+                <p>From wardrobe staples to study books, find what you need.</p>
+            </div>
+            <a href="<?= url('marketplace.php') ?>" class="btn btn-outline-brand">View all <i class="bi bi-arrow-right ms-1"></i></a>
+        </div>
+        <div class="row g-3 g-lg-4">
+            <?php foreach (get_categories() as $i => $c): ?>
+                <div class="col-6 col-md-4 col-lg-<?= $i < 2 ? '6' : '3' ?> reveal">
+                    <a class="cat-tile" href="<?= url('marketplace.php?category=' . (int) $c['id']) ?>">
+                        <img src="<?= e($catImages[$c['slug']] ?? $fallback) ?>" alt="<?= e($c['name']) ?>" loading="lazy" onerror="this.src='<?= $fallback ?>'">
+                        <div class="cat-info">
+                            <div>
+                                <h3><i class="bi <?= e($c['icon']) ?> me-1"></i> <?= e($c['name']) ?></h3>
+                                <small><?= (int) ($catCounts[$c['id']] ?? 0) ?> items</small>
+                            </div>
+                            <span class="arrow"><i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+
+<!-- ============ RECENT PRODUCTS ============ -->
+<section class="section pt-0">
+    <div class="container">
+        <div class="section-head reveal">
+            <div>
+                <span class="kicker">Fresh arrivals</span>
+                <h2>Recently listed</h2>
+                <p>New treasures published by the community.</p>
+            </div>
+            <?php if (is_logged_in()): ?>
+                <a href="<?= url('marketplace.php') ?>" class="btn btn-outline-brand">Open marketplace <i class="bi bi-arrow-right ms-1"></i></a>
+            <?php endif; ?>
+        </div>
+
+        <?php if (is_logged_in()): ?>
+            <?php if ($recent): ?>
+                <div class="row g-3 g-lg-4">
+                    <?php foreach ($recent as $p): ?>
+                        <div class="col-6 col-md-4 col-lg-3 reveal"><?php partial('product_card', ['p' => $p, 'favIds' => $favIds]); ?></div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="empty-state">
+                    <div class="ic"><i class="bi bi-box-seam"></i></div>
+                    <h3>No listings yet</h3>
+                    <p>Be the first to give something a second life.</p>
+                    <a href="<?= url('add_product.php') ?>" class="btn btn-brand">Sell an item</a>
+                </div>
+            <?php endif; ?>
+        <?php else: ?>
+            <!-- Guests see a locked preview: no product data is sent to the browser -->
+            <div class="locked">
+                <div class="row g-4 blur-grid" aria-hidden="true">
+                    <?php for ($i = 0; $i < 4; $i++): ?>
+                        <div class="col-6 col-lg-3"><div class="skeleton"><div class="sk-img"></div></div></div>
+                    <?php endfor; ?>
+                </div>
+                <div class="lock-card">
+                    <div>
+                        <div class="step-icon mx-auto"><i class="bi bi-lock"></i></div>
+                        <h3>Members-only listings</h3>
+                        <p class="text-muted">Create a free account to browse <?= number_format((int) $stats['available']) ?> items, save favorites and chat with sellers.</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a href="<?= url('register.php') ?>" class="btn btn-brand">Join for free</a>
+                            <a href="<?= url('login.php') ?>" class="btn btn-ghost">Log in</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="section pt-0" id="how">
+    <div class="container">
+        <div class="text-center mb-5 reveal">
+            <span class="kicker">Simple as 1, 2, 3</span>
+            <h2 class="mt-2" style="font-size:clamp(1.9rem,3.3vw,2.6rem)">How ReUse works</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4 reveal">
+                <div class="step-card">
+                    <span class="step-num">01</span>
+                    <div class="step-icon"><i class="bi bi-camera"></i></div>
+                    <h3>Snap &amp; list</h3>
+                    <p>Take a photo, add a price in dinars and publish your item in less than two minutes.</p>
+                </div>
+            </div>
+            <div class="col-md-4 reveal">
+                <div class="step-card">
+                    <span class="step-num">02</span>
+                    <div class="step-icon"><i class="bi bi-chat-heart"></i></div>
+                    <h3>Chat with buyers</h3>
+                    <p>Interested buyers contact you through the built-in messaging. No need to share your number.</p>
+                </div>
+            </div>
+            <div class="col-md-4 reveal">
+                <div class="step-card">
+                    <span class="step-num">03</span>
+                    <div class="step-icon"><i class="bi bi-arrow-repeat"></i></div>
+                    <h3>Meet &amp; reuse</h3>
+                    <p>Meet locally, exchange the item and mark it as sold. One less object in the landfill.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="pb-2">
+    <div class="container">
+        <div class="cta-band reveal">
+            <div class="row align-items-center g-4 position-relative" style="z-index:1">
+                <div class="col-lg-7">
+                    <h2>Got things you no longer use?</h2>
+                    <p class="mb-4">Turn your closet, shelves and garage into extra dinars while helping someone else find exactly what they need.</p>
+                    <a href="<?= url(is_logged_in() ? 'add_product.php' : 'register.php') ?>" class="btn btn-cream btn-lg">
+                        <?= is_logged_in() ? 'Sell an item now' : 'Start selling for free' ?> <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="col-lg-5">
+                    <div class="impact">
+                        <div><strong><?= number_format((int) $stats['sold']) ?></strong><span>items re-used</span></div>
+                        <div><strong>0 DT</strong><span>listing fees</span></div>
+                        <div><strong><?= count(get_categories()) ?></strong><span>categories</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

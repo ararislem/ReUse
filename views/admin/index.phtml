@@ -1,0 +1,76 @@
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3"><div class="kpi"><div class="ic"><i class="bi bi-people"></i></div><div><small>Users</small><strong><?= (int) $k['users'] ?></strong><small class="text-success">+<?= (int) $k['new_users'] ?> this week</small></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="kpi alt"><div class="ic"><i class="bi bi-box-seam"></i></div><div><small>Products</small><strong><?= (int) $k['products'] ?></strong><small class="text-muted"><?= (int) $k['available'] ?> available</small></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="kpi"><div class="ic"><i class="bi bi-bag-check"></i></div><div><small>Items sold</small><strong><?= (int) $k['sold'] ?></strong><small class="text-muted"><?= format_price($k['sold_value']) ?></small></div></div></div>
+    <div class="col-sm-6 col-xl-3"><div class="kpi alt"><div class="ic"><i class="bi bi-chat-dots"></i></div><div><small>Messages</small><strong><?= (int) $k['messages'] ?></strong><small class="text-muted"><?= (int) $k['favorites'] ?> favorites</small></div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <div class="panel h-100">
+            <h2 class="panel-title">Listings by category</h2>
+            <?php foreach ($byCategory as $c): ?>
+                <div class="bar-row">
+                    <span class="lbl"><i class="bi <?= e($c['icon']) ?> me-2 text-brand"></i><?= e($c['name']) ?></span>
+                    <span class="bar"><span style="width:<?= round($c['total'] / $maxCat * 100) ?>%"></span></span>
+                    <span class="val"><?= (int) $c['total'] ?></span>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="panel h-100">
+            <h2 class="panel-title">Top locations</h2>
+            <?php if (!$byLocation): ?><p class="text-muted">No listings yet.</p><?php endif; ?>
+            <?php foreach ($byLocation as $l): ?>
+                <div class="bar-row">
+                    <span class="lbl" style="width:110px"><?= e($l['location']) ?></span>
+                    <span class="bar"><span style="width:<?= round($l['total'] / $maxLoc * 100) ?>%"></span></span>
+                    <span class="val"><?= (int) $l['total'] ?></span>
+                </div>
+            <?php endforeach; ?>
+            <div class="d-flex flex-wrap gap-3 mt-4">
+                <div class="stat-mini flex-fill bg-cream shadow-none"><small>Sell-through</small><strong><?= $k['products'] ? round($k['sold'] / $k['products'] * 100) : 0 ?>%</strong></div>
+                <div class="stat-mini flex-fill bg-cream shadow-none"><small>Items / user</small><strong><?= $k['users'] ? round($k['products'] / $k['users'], 1) : 0 ?></strong></div>
+                <div class="stat-mini flex-fill bg-cream shadow-none"><small>Active reservations</small><strong><?= (int) $k['reservations'] ?></strong></div>
+                <div class="stat-mini flex-fill bg-cream shadow-none"><small>Price changes</small><strong><?= (int) $k['price_changes'] ?></strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="table-card">
+            <div class="d-flex justify-content-between align-items-center p-3"><strong class="display-font fs-5">Latest products</strong><a href="products.php" class="small fw-semibold">See all</a></div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Product</th><th>Seller</th><th>Price</th><th>Status</th></tr></thead>
+                    <tbody>
+                    <?php foreach ($latestProducts as $p): ?>
+                        <tr>
+                            <td><div class="d-flex align-items-center gap-2"><img src="<?= product_image_url($p['image']) ?>" class="thumb" alt=""><a href="<?= url('product_details.php?id=' . (int) $p['id']) ?>" class="text-truncate d-inline-block" style="max-width:200px"><?= e($p['title']) ?></a></div></td>
+                            <td class="small"><?= e($p['full_name']) ?></td>
+                            <td class="fw-semibold"><?= format_price($p['price']) ?></td>
+                            <td><span class="status-pill <?= e($p['status']) ?>"><?= ucfirst(e($p['status'])) ?></span></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    <?php if (!$latestProducts): ?><tr><td colspan="4" class="text-muted text-center py-4">No products yet.</td></tr><?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="table-card">
+            <div class="d-flex justify-content-between align-items-center p-3"><strong class="display-font fs-5">New members</strong><a href="users.php" class="small fw-semibold">See all</a></div>
+            <?php foreach ($latestUsers as $u): ?>
+                <div class="d-flex align-items-center gap-2 px-3 py-2 border-top" style="border-color:var(--cream)!important">
+                    <img src="<?= avatar_url($u['profile_picture']) ?>" class="avatar-sm" alt="">
+                    <div class="flex-grow-1 min-w-0"><strong class="d-block small"><?= e($u['full_name']) ?></strong><small class="text-muted"><?= e($u['email']) ?></small></div>
+                    <small class="text-muted text-nowrap"><?= time_ago($u['created_at']) ?></small>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>

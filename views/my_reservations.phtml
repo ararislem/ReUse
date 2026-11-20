@@ -1,0 +1,52 @@
+<section class="page-hero">
+    <div class="container">
+        <span class="kicker">24-hour holds</span>
+        <h1>My reservations</h1>
+        <p>An item you reserve is blocked for other buyers during 24 hours. Contact the seller to meet.</p>
+    </div>
+</section>
+
+<div class="container">
+    <?php if ($reservations): ?>
+        <?php foreach ($reservations as $r): ?>
+            <?php $isActive = $r['status'] === 'active' && strtotime($r['expires_at']) > time(); ?>
+            <div class="listing-row">
+                <a href="<?= url('product_details.php?id=' . (int) $r['product_id']) ?>"><img src="<?= product_image_url($r['image']) ?>" alt=""></a>
+                <div class="info">
+                    <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                        <?php if ($isActive): ?>
+                            <span class="status-pill reserved">Active · <?= time_left($r['expires_at']) ?> left</span>
+                        <?php else: ?>
+                            <span class="status-pill sold"><?= e(ucfirst($r['status'])) ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <h3 class="text-truncate"><a href="<?= url('product_details.php?id=' . (int) $r['product_id']) ?>" class="text-reset"><?= e($r['title']) ?></a></h3>
+                    <div class="small text-muted">
+                        <strong class="text-brand"><?= format_price($r['price']) ?></strong>
+                        · Seller: <?= e($r['seller_name']) ?> · <i class="bi bi-geo-alt"></i> <?= e($r['location']) ?>
+                        · Reserved <?= time_ago($r['created_at']) ?>
+                    </div>
+                </div>
+                <?php if ($isActive): ?>
+                    <div class="actions">
+                        <a href="<?= url('messages.php?product=' . (int) $r['product_id'] . '&with=' . (int) $r['seller_id']) ?>" class="btn btn-sm btn-outline-brand"><i class="bi bi-chat-dots me-1"></i>Seller</a>
+                        <form action="<?= url('reserve.php') ?>" method="post" data-confirm="Cancel this reservation?">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="product_id" value="<?= (int) $r['product_id'] ?>">
+                            <input type="hidden" name="action" value="cancel">
+                            <input type="hidden" name="back" value="reservations">
+                            <button class="btn btn-sm btn-soft-danger"><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                        </form>
+                    </div>
+                <?php endif; ?>
+            </div>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <div class="empty-state">
+            <div class="ic"><i class="bi bi-bookmark-check"></i></div>
+            <h3>No reservations yet</h3>
+            <p>Open a product and click "Reserve for 24 hours" to block it while you contact the seller.</p>
+            <a href="<?= url('marketplace.php') ?>" class="btn btn-brand">Browse the marketplace</a>
+        </div>
+    <?php endif; ?>
+</div>

@@ -1,0 +1,172 @@
+<?php
+/**
+ * LAYOUT PRINCIPAL : partagé par toutes les pages du site (en-tête, menu, pied de page).
+ *
+ * Variables fournies par render() :
+ *   $content    HTML de la vue de la page
+ *   $pageTitle  titre de la page (facultatif)
+ *   $bodyClass  classe CSS du <body> (facultatif)
+ *   $user       utilisateur connecté ou null
+ *   $unread     nombre de messages non lus
+ *   $current    nom du fichier PHP en cours (lien actif du menu)
+ *   $flashes    messages flash à afficher
+ */
+$fullTitle = isset($pageTitle) ? $pageTitle . ' | ' . APP_NAME : APP_NAME . ' - ' . APP_TAGLINE;
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="ReUse is the Tunisian marketplace to buy, sell and exchange second-hand products.">
+    <title><?= e($fullTitle) ?></title>
+    <link rel="icon" href="<?= url('assets/images/logo.svg') ?>" type="image/svg+xml">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 + Icons -->
+    <link href="<?= url('assets/vendor/bootstrap/bootstrap.min.css') ?>" rel="stylesheet">
+    <link href="<?= url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>" rel="stylesheet">
+
+    <!-- App styles -->
+    <link href="<?= url('assets/css/style.css') ?>" rel="stylesheet">
+</head>
+<body class="<?= e($bodyClass ?? '') ?>">
+
+<nav class="navbar navbar-expand-lg site-nav sticky-top">
+    <div class="container">
+        <a class="navbar-brand brand" href="<?= url('index.php') ?>">
+            <span class="brand-mark"><i class="bi bi-recycle"></i></span>
+            <span>Re<span class="brand-accent">Use</span></span>
+        </a>
+
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-list fs-2"></i>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav mx-auto gap-lg-2">
+                <li class="nav-item"><a class="nav-link<?= nav_active('index.php', $current) ?>" href="<?= url('index.php') ?>">Home</a></li>
+                <li class="nav-item"><a class="nav-link<?= nav_active('marketplace.php', $current) ?>" href="<?= url('marketplace.php') ?>">Marketplace</a></li>
+                <?php if ($user): ?>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('my_listings.php', $current) ?>" href="<?= url('my_listings.php') ?>">My Listings</a></li>
+                    <li class="nav-item"><a class="nav-link<?= nav_active('favorites.php', $current) ?>" href="<?= url('favorites.php') ?>">Favorites</a></li>
+                <?php else: ?>
+                    <li class="nav-item"><a class="nav-link" href="<?= url('index.php#how') ?>">How it works</a></li>
+                <?php endif; ?>
+            </ul>
+
+            <div class="d-flex align-items-lg-center flex-column flex-lg-row gap-2 py-3 py-lg-0">
+                <?php if ($user): ?>
+                    <a href="<?= url('messages.php') ?>" class="icon-btn position-relative" title="Messages">
+                        <i class="bi bi-chat-dots"></i>
+                        <?php if ($unread > 0): ?><span class="dot-badge"><?= $unread ?></span><?php endif; ?>
+                    </a>
+                    <a href="<?= url('add_product.php') ?>" class="btn btn-brand"><i class="bi bi-plus-lg me-1"></i> Sell an item</a>
+                    <div class="dropdown">
+                        <button class="btn user-chip dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="<?= avatar_url($user['profile_picture']) ?>" alt="" class="avatar-sm">
+                            <span class="d-lg-none d-xl-inline"><?= e(explode(' ', $user['full_name'])[0]) ?></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-soft">
+                            <li class="px-3 py-2 small text-muted"><?= e($user['email']) ?></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="<?= url('profile.php') ?>"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                            <li><a class="dropdown-item" href="<?= url('my_listings.php') ?>"><i class="bi bi-box-seam me-2"></i>My Listings</a></li>
+                            <li><a class="dropdown-item" href="<?= url('favorites.php') ?>"><i class="bi bi-heart me-2"></i>Favorites</a></li>
+                            <li><a class="dropdown-item" href="<?= url('my_reservations.php') ?>"><i class="bi bi-bookmark-check me-2"></i>My reservations</a></li>
+                            <li><a class="dropdown-item" href="<?= url('messages.php') ?>"><i class="bi bi-chat-dots me-2"></i>Messages</a></li>
+                            <?php if ($user['role'] === 'admin'): ?>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="<?= url('admin/index.php') ?>"><i class="bi bi-speedometer2 me-2"></i>Admin Dashboard</a></li>
+                            <?php endif; ?>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form action="<?= url('logout.php') ?>" method="post" class="m-0">
+                                    <?= csrf_field() ?>
+                                    <button class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Log out</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                <?php else: ?>
+                    <a href="<?= url('login.php') ?>" class="btn btn-ghost">Log in</a>
+                    <a href="<?= url('register.php') ?>" class="btn btn-brand">Join ReUse</a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Flash messages -->
+<?php if ($flashes): ?>
+    <div class="flash-stack">
+        <?php foreach ($flashes as $f): ?>
+            <div class="alert alert-<?= e($f['type']) ?> alert-dismissible fade show shadow-soft" role="alert">
+                <?= e($f['message']) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+
+<main>
+<?= $content ?>
+</main>
+
+<footer class="site-footer">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <a class="brand brand-light mb-3 d-inline-flex" href="<?= url('index.php') ?>">
+                    <span class="brand-mark"><i class="bi bi-recycle"></i></span>
+                    <span>Re<span class="brand-accent">Use</span></span>
+                </a>
+                <p class="footer-text">The Tunisian marketplace for pre-loved things. Buy smart, sell easily and keep good products out of landfills.</p>
+                <div class="d-flex gap-2">
+                    <a href="#" class="social" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="social" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="social" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2">
+                <h6>Marketplace</h6>
+                <ul>
+                    <li><a href="<?= url('marketplace.php') ?>">Browse items</a></li>
+                    <li><a href="<?= url('add_product.php') ?>">Sell an item</a></li>
+                    <li><a href="<?= url('favorites.php') ?>">Favorites</a></li>
+                </ul>
+            </div>
+            <div class="col-6 col-lg-3">
+                <h6>Categories</h6>
+                <ul>
+                    <?php foreach (array_slice(get_categories(), 0, 4) as $c): ?>
+                        <li><a href="<?= url('marketplace.php?category=' . (int) $c['id']) ?>"><?= e($c['name']) ?></a></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <div class="col-lg-3">
+                <h6>Contact</h6>
+                <ul>
+                    <li><i class="bi bi-geo-alt me-2"></i>Tunis, Tunisia</li>
+                    <li><i class="bi bi-envelope me-2"></i>hello@reuse.tn</li>
+                    <li><i class="bi bi-telephone me-2"></i>+216 71 000 000</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; <?= date('Y') ?> ReUse. Give things a second life.</span>
+            <span>DSI2 · Atelier Développement Web · 2026/2027</span>
+        </div>
+    </div>
+</footer>
+
+<script src="<?= url('assets/vendor/bootstrap/bootstrap.bundle.min.js') ?>"></script>
+<script>window.REUSE = { csrf: "<?= csrf_token() ?>", base: "<?= e(BASE_URL) ?>" };</script>
+<script src="<?= url('assets/js/main.js') ?>"></script>
+</body>
+</html>

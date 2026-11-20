@@ -1,0 +1,66 @@
+<section class="page-hero">
+    <div class="container">
+        <span class="kicker">Inbox</span>
+        <h1>Messages</h1>
+        <p>Your conversations with buyers and sellers.</p>
+    </div>
+</section>
+
+<div class="container">
+    <?php if (!$convos && !$active): ?>
+        <div class="empty-state">
+            <div class="ic"><i class="bi bi-chat-dots"></i></div>
+            <h3>No conversations yet</h3>
+            <p>When you contact a seller, or a buyer writes to you, the conversation appears here.</p>
+            <a href="<?= url('marketplace.php') ?>" class="btn btn-brand">Browse products</a>
+        </div>
+    <?php else: ?>
+        <div class="inbox">
+            <div class="inbox-list">
+                <?php foreach ($convos as $c):
+                    $isActive = $active && (int) $c['product_id'] === $productId && (int) $c['other_id'] === $withId; ?>
+                    <a href="<?= url('messages.php?product=' . (int) $c['product_id'] . '&with=' . (int) $c['other_id']) ?>" class="convo<?= $isActive ? ' active' : '' ?>">
+                        <img src="<?= avatar_url($c['other_picture']) ?>" class="avatar-md" alt="">
+                        <div class="meta">
+                            <strong><?= e($c['other_name']) ?></strong>
+                            <small class="fw-semibold text-brand"><?= e($c['title']) ?></small>
+                            <small><?= (int) $c['last_sender'] === $me ? 'You: ' : '' ?><?= e($c['last_body']) ?></small>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block text-nowrap" style="font-size:.72rem"><?= time_ago($c['last_at']) ?></small>
+                            <?php if ($c['unread'] > 0): ?><span class="unread d-inline-block"></span><?php endif; ?>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+
+            <div class="thread">
+                <?php if ($active): ?>
+                    <div class="thread-head">
+                        <img src="<?= product_image_url($active['image']) ?>" class="prod" alt="">
+                        <div class="flex-grow-1 min-w-0">
+                            <a href="<?= url('product_details.php?id=' . $productId) ?>" class="fw-semibold d-block text-truncate"><?= e($active['title']) ?></a>
+                            <small class="text-muted"><?= format_price($active['price']) ?> · with <?= e($active['other_name']) ?>
+                                (<?= (int) $active['seller_id'] === $me ? 'buyer' : 'seller' ?>)</small>
+                        </div>
+                    </div>
+                    <div class="thread-body">
+                        <?php foreach ($thread as $m): $mine = (int) $m['sender_id'] === $me; ?>
+                            <div class="bubble <?= $mine ? 'me' : 'them' ?>"><?= e($m['body']) ?><small><?= date('d M, H:i', strtotime($m['created_at'])) ?></small></div>
+                        <?php endforeach; ?>
+                    </div>
+                    <form action="<?= url('send_message.php') ?>" method="post" class="thread-form">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="product_id" value="<?= $productId ?>">
+                        <input type="hidden" name="receiver_id" value="<?= $withId ?>">
+                        <input type="hidden" name="from" value="thread">
+                        <textarea name="body" class="form-control" rows="1" maxlength="1000" minlength="2" required placeholder="Write a message..."></textarea>
+                        <button class="btn btn-brand btn-icon rounded-circle flex-shrink-0" aria-label="Send"><i class="bi bi-send"></i></button>
+                    </form>
+                <?php else: ?>
+                    <div class="d-grid place-items-center h-100 text-muted p-5 text-center">Select a conversation.</div>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+</div>
